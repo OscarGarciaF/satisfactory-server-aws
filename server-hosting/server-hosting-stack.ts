@@ -192,11 +192,13 @@ export class ServerHostingStack extends Stack {
         }
       );
 
+      const stack = Stack.of(this);
+
       startServerLambda.addToRolePolicy(
         new iam.PolicyStatement({
           actions: ["ec2:StartInstances"],
           resources: [
-            `arn:aws:ec2:*:${Config.account}:instance/${server.instanceId}`,
+            `arn:aws:ec2:*:${stack.account}:instance/${server.instanceId}`,
           ],
         })
       );

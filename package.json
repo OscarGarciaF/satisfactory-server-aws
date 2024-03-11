@@ -8,7 +8,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "deploy": "pnpm tsc && pnpm cdk deploy"
   },
   "devDependencies": {
     "@aws-sdk/client-ec2": "3.529.1",
