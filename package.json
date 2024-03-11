@@ -11,12 +11,12 @@
     "preinstall": "npx only-allow pnpm"
   },
   "devDependencies": {
+    "@aws-sdk/client-ec2": "3.529.1",
     "@types/node": "10.17.27",
-    "aws-cdk": "2.3.0",
+    "aws-cdk": "2.132.0",
+    "esbuild": "0.14.10",
     "ts-node": "^9.0.0",
-    "typescript": "~3.9.7",
-    "@aws-sdk/client-ec2": "3.45.0",
-    "esbuild": "0.14.10"
+    "typescript": "~5.4.2"
   },
   "dependencies": {
     "aws-cdk-lib": "2.3.0",

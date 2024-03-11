@@ -36,7 +36,7 @@ export class ServerHostingStack extends Stack {
 
     let publicOrLookupSubnet = (
       subnetId: string,
-      availabilityZone: string,
+      availabilityZone: string
     ): ec2.SubnetSelection => {
       // if subnet id is given select it
       if (subnetId && availabilityZone) {
@@ -48,7 +48,7 @@ export class ServerHostingStack extends Stack {
               {
                 availabilityZone,
                 subnetId,
-              },
+              }
             ),
           ],
         };
@@ -62,7 +62,7 @@ export class ServerHostingStack extends Stack {
     const vpc = lookUpOrDefaultVpc(Config.vpcId);
     const vpcSubnets = publicOrLookupSubnet(
       Config.subnetId,
-      Config.availabilityZone,
+      Config.availabilityZone
     );
 
     // configure security group to allow ingress access to game ports
@@ -72,23 +72,23 @@ export class ServerHostingStack extends Stack {
       {
         vpc,
         description: "Allow Satisfactory client to connect to server",
-      },
+      }
     );
 
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.udp(7777),
-      "Game port",
+      "Game port"
     );
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.udp(15000),
-      "Beacon port",
+      "Beacon port"
     );
     securityGroup.addIngressRule(
       ec2.Peer.anyIpv4(),
       ec2.Port.udp(15777),
-      "Query port",
+      "Query port"
     );
 
     const server = new ec2.Instance(this, `${prefix}Server`, {
@@ -97,7 +97,7 @@ export class ServerHostingStack extends Stack {
       // get exact ami from parameter exported by canonical
       // https://discourse.ubuntu.com/t/finding-ubuntu-images-with-the-aws-ssm-parameter-store/15507
       machineImage: ec2.MachineImage.fromSsmParameter(
-        "/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id",
+        "/aws/service/canonical/ubuntu/server/20.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
       ),
       // storage for steam, satisfactory and save files
       blockDevices: [
@@ -115,9 +115,7 @@ export class ServerHostingStack extends Stack {
 
     // Add Base SSM Permissions, so we can use AWS Session Manager to connect to our server, rather than external SSH.
     server.role.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName(
-        "AmazonSSMManagedInstanceCore",
-      ),
+      iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
     );
 
     //////////////////////////////
@@ -130,7 +128,7 @@ export class ServerHostingStack extends Stack {
         return s3.Bucket.fromBucketName(
           this,
           `${prefix}SavesBucket`,
-          bucketName,
+          bucketName
         );
         // if bucket does not exist create a new bucket
         // autogenerate name to reduce possibility of conflict
@@ -152,7 +150,7 @@ export class ServerHostingStack extends Stack {
     // perform backups to s3
     server.userData.addCommands("sudo apt-get install unzip -y");
     server.userData.addCommands(
-      'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install',
+      'curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install'
     );
 
     // package startup script and grant read access to server
@@ -161,7 +159,7 @@ export class ServerHostingStack extends Stack {
       `${Config.prefix}InstallAsset`,
       {
         path: "./server-hosting/scripts/install.sh",
-      },
+      }
     );
     startupScript.grantRead(server.role);
 
@@ -191,7 +189,7 @@ export class ServerHostingStack extends Stack {
           environment: {
             INSTANCE_ID: server.instanceId,
           },
-        },
+        }
       );
 
       startServerLambda.addToRolePolicy(
@@ -200,7 +198,7 @@ export class ServerHostingStack extends Stack {
           resources: [
             `arn:aws:ec2:*:${Config.account}:instance/${server.instanceId}`,
           ],
-        }),
+        })
       );
 
       new apigw.LambdaRestApi(this, `${Config.prefix}StartServerApi`, {
