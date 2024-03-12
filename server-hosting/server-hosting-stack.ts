@@ -1,6 +1,7 @@
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Config } from "./config";
+import * as route53 from "aws-cdk-lib/aws-route53";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3_assets from "aws-cdk-lib/aws-s3-assets";
@@ -93,8 +94,8 @@ export class ServerHostingStack extends Stack {
     );
 
     const server = new ec2.Instance(this, `${prefix}Server`, {
-      // 2 vCPU, 8 GB RAM should be enough for most factories
-      instanceType: new ec2.InstanceType("m5a.large"),
+      // 4 vCPU, 16 GB RAM should be enough for most factories
+      instanceType: new ec2.InstanceType("m7a.xlarge"),
       // get exact ami from parameter exported by canonical
       // https://discourse.ubuntu.com/t/finding-ubuntu-images-with-the-aws-ssm-parameter-store/15507
       machineImage: ec2.MachineImage.fromSsmParameter(
@@ -118,6 +119,33 @@ export class ServerHostingStack extends Stack {
     server.role.addManagedPolicy(
       iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
     );
+
+    //////////////////////////////
+    // Domain
+    //////////////////////////////
+
+    // Allocate an Elastic IP and associate it with the instance
+    const eip = new ec2.CfnEIP(this, `${prefix}EIP`);
+    new ec2.CfnEIPAssociation(this, `${prefix}EIPAssociation`, {
+      eip: eip.ref,
+      instanceId: server.instanceId,
+    });
+
+    if (Config.domain) {
+      const hostedZone = route53.HostedZone.fromLookup(
+        this,
+        `${prefix}HostedZone`,
+        {
+          domainName: Config.domain,
+        }
+      );
+
+      new route53.ARecord(this, `${prefix}ServerARecord`, {
+        zone: hostedZone,
+        recordName: Config.subdomain || "",
+        target: route53.RecordTarget.fromIpAddresses(eip.ref),
+      });
+    }
 
     //////////////////////////////
     // Configure save bucket
@@ -205,10 +233,14 @@ export class ServerHostingStack extends Stack {
         })
       );
 
-      new apigw.LambdaRestApi(this, `${Config.prefix}StartServerApi`, {
-        handler: startServerLambda,
-        description: "Trigger lambda function to start server",
+      startServerLambda.addFunctionUrl({
+        authType: lambda.FunctionUrlAuthType.NONE,
       });
+
+      // new apigw.LambdaRestApi(this, `${Config.prefix}StartServerApi`, {
+      //   handler: startServerLambda,
+      //   description: "Trigger lambda function to start server",
+      // });
     }
   }
 }

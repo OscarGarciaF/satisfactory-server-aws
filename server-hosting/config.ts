@@ -11,6 +11,8 @@ export const Config = {
 
   // optional parameters
 
+  domain: "mrlester.com",
+  subdomain: "factory",
   // bucket for storing save files
   // you can use an existing bucket
   // or leave it empty to create a new one

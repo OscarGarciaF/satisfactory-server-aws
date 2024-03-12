@@ -48,6 +48,11 @@ WorkingDirectory=/home/ubuntu/.steam/SteamApps/common/SatisfactoryDedicatedServe
 [Install]
 WantedBy=multi-user.target
 EOF
+
+cat << EOF > /home/ubuntu/.steam/SteamApps/common/SatisfactoryDedicatedServer/FactoryGame/Saved/Config/Game.ini
+[/Script/Engine.GameSession]
+MaxPlayers=8
+EOF
 systemctl enable satisfactory
 systemctl start satisfactory
 
