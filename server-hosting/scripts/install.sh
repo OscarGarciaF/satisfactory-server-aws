@@ -27,6 +27,10 @@ fi
 # note, we are switching users because steam doesn't recommend running steamcmd as root
 su - ubuntu -c "$STEAM_INSTALL_SCRIPT"
 
+# pull down any saved files to new instances
+mkdir -p /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server
+/usr/local/bin/aws s3 sync s3://$S3_SAVE_BUCKET\ /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server
+
 # enable as server so it stays up and start: https://satisfactory.fandom.com/wiki/Dedicated_servers/Running_as_a_Service
 cat << EOF > /etc/systemd/system/satisfactory.service
 [Unit]
@@ -80,6 +84,8 @@ while [ $isIdle -le 0 ]; do
         iterations=$(($iterations-1))
     done
 done
+
+/usr/local/bin/aws s3 sync /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server s3://$S3_SAVE_BUCKET\
 
 echo "No activity detected for $shutdownIdleMinutes minutes, shutting down."
 sudo shutdown -h now
