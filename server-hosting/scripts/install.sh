@@ -28,8 +28,8 @@ fi
 su - ubuntu -c "$STEAM_INSTALL_SCRIPT"
 
 # pull down any saved files to new instances
-mkdir -p /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server
-/usr/local/bin/aws s3 sync s3://$S3_SAVE_BUCKET\ /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server
+su - ubuntu -c "mkdir -p /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server"
+su - ubuntu -c "/usr/local/bin/aws s3 sync s3://$S3_SAVE_BUCKET /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server"
 
 # enable as server so it stays up and start: https://satisfactory.fandom.com/wiki/Dedicated_servers/Running_as_a_Service
 cat << EOF > /etc/systemd/system/satisfactory.service
@@ -52,6 +52,8 @@ WorkingDirectory=/home/ubuntu/.steam/SteamApps/common/SatisfactoryDedicatedServe
 [Install]
 WantedBy=multi-user.target
 EOF
+
+mkdir -p /home/ubuntu/.steam/SteamApps/common/SatisfactoryDedicatedServer/FactoryGame/Saved/Config
 
 cat << EOF > /home/ubuntu/.steam/SteamApps/common/SatisfactoryDedicatedServer/FactoryGame/Saved/Config/Game.ini
 [/Script/Engine.GameSession]
@@ -85,7 +87,7 @@ while [ $isIdle -le 0 ]; do
     done
 done
 
-/usr/local/bin/aws s3 sync /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server s3://$S3_SAVE_BUCKET\
+sudo /usr/local/bin/aws s3 sync /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server s3://$S3_SAVE_BUCKET
 
 echo "No activity detected for $shutdownIdleMinutes minutes, shutting down."
 sudo shutdown -h now
@@ -115,4 +117,5 @@ systemctl enable auto-shutdown
 systemctl start auto-shutdown
 
 # automated backups to s3 every 5 minutes
-su - ubuntu -c "crontab -l -e ubuntu | { cat; echo \"*/5 * * * * /usr/local/bin/aws s3 sync /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server s3://$S3_SAVE_BUCKET\"; } | crontab -"
+su - ubuntu -c "(crontab -l; echo \"*/5 * * * * /usr/local/bin/aws s3 sync /home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server s3://$S3_SAVE_BUCKET\") | crontab -"
+
