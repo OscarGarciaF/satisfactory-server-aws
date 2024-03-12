@@ -4,6 +4,7 @@ import { Config } from "./config";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3_assets from "aws-cdk-lib/aws-s3-assets";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as lambda_nodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as apigw from "aws-cdk-lib/aws-apigateway";
@@ -186,6 +187,7 @@ export class ServerHostingStack extends Stack {
           entry: "./server-hosting/lambda/index.ts",
           description: "Restart game server",
           timeout: Duration.seconds(10),
+          runtime: lambda.Runtime.NODEJS_LATEST,
           environment: {
             INSTANCE_ID: server.instanceId,
           },

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       aws-cdk-lib:
-        specifier: 2.3.0
-        version: 2.3.0(constructs@10.0.0)
+        specifier: 2.132.0
+        version: 2.132.0(constructs@10.0.0)
       constructs:
         specifier: ^10.0.0
         version: 10.0.0
@@ -38,6 +38,18 @@ importers:
         version: 5.4.2
 
 packages:
+
+  /@aws-cdk/asset-awscli-v1@2.2.202:
+    resolution: {integrity: sha512-JqlF0D4+EVugnG5dAsNZMqhu3HW7ehOXm5SDMxMbXNDMdsF0pxtQKNHRl52z1U9igsHmaFpUgSGjbhAJ+0JONg==}
+    dev: false
+
+  /@aws-cdk/asset-kubectl-v20@2.1.2:
+    resolution: {integrity: sha512-3M2tELJOxQv0apCIiuKQ4pAbncz9GuLwnKFqxifWfe77wuMxyTRPmxssYHs42ePqzap1LT6GDcPygGs+hHstLg==}
+    dev: false
+
+  /@aws-cdk/asset-node-proxy-agent-v6@2.0.1:
+    resolution: {integrity: sha512-DDt4SLdLOwWCjGtltH4VCST7hpOI5DzieuhGZsBpZ+AgJdSI2GCjklCXm0GCTwJG/SolkL5dtQXyUKgg9luBDg==}
+    dev: false
 
   /@aws-crypto/crc32@3.0.0:
     resolution: {integrity: sha512-IzSgsrxUcsrejQbPVilIKy16kAT52EwB6zSaI+M3xxIhKh5+aldEyvI+z6erM7TCLB2BJsFrtHjp6/4/sr+3dA==}
@@ -939,12 +951,15 @@ packages:
     resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
     dev: true
 
-  /aws-cdk-lib@2.3.0(constructs@10.0.0):
-    resolution: {integrity: sha512-fVQ7x+ahOmzcy5KCw+EaYp0II3igglJSpi/Rs4OyLrCxa7GBZ4G9iDu0IAPKjppw5IX3UshklmdfkEFP8d1b9w==}
+  /aws-cdk-lib@2.132.0(constructs@10.0.0):
+    resolution: {integrity: sha512-auztTTYy8j62MmRZNdM7Vd8eQ5eP3xLMhrrILhDZf3DiSDD0lyYL0hv98VD4XPkWGMQ8yOmo5nZ3s/zD7cnKlw==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
       constructs: ^10.0.0
     dependencies:
+      '@aws-cdk/asset-awscli-v1': 2.2.202
+      '@aws-cdk/asset-kubectl-v20': 2.1.2
+      '@aws-cdk/asset-node-proxy-agent-v6': 2.0.1
       constructs: 10.0.0
     dev: false
     bundledDependencies:
@@ -956,7 +971,9 @@ packages:
       - minimatch
       - punycode
       - semver
+      - table
       - yaml
+      - mime-types
 
   /aws-cdk@2.132.0:
     resolution: {integrity: sha512-C2j9iQqpl21YGuip02tIAAkgkDZNDDWeEoWfPcdXCJlQ9DVpYTJG24QxtY0rWflJ7Xkn+iAozdjlCrXSxYeAfA==}
