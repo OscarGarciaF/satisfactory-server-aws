@@ -29,10 +29,20 @@ su - ubuntu -c "$STEAM_INSTALL_SCRIPT"
 
 EPIC_SAVE_DIR="/home/ubuntu/.config/Epic/FactoryGame/Saved/SaveGames/server"
 STEAM_DIR="/home/ubuntu/.steam/SteamApps/common/SatisfactoryDedicatedServer"
+CONFIG_DIR="$STEAM_DIR/FactoryGame/Saved/Config"
+CONFIG_SERVER_DIR="$CONFIG_DIR/LinuxServer"
 
 # pull down any saved files to new instances
-su - ubuntu -c "mkdir -p $EPIC_SAVE_DIR"
+su - ubuntu -c "mkdir -p $EPIC_SAVE_DIR $CONFIG_DIR"
 su - ubuntu -c "/usr/local/bin/aws s3 sync s3://$S3_SAVE_BUCKET/saves $EPIC_SAVE_DIR"
+su - ubuntu -c "/usr/local/bin/aws s3 sync s3://$S3_SAVE_BUCKET/config $CONFIG_DIR"
+su - ubuntu -c "mkdir -p $CONFIG_SERVER_DIR"
+
+GAME_INI_PATH="$CONFIG_SERVER_DIR/Game.ini"
+if [ ! -f "$GAME_INI_PATH" ]; then
+    su - ubuntu -c "echo '[/Script/Engine.GameSession]' > $GAME_INI_PATH"
+    su - ubuntu -c "echo 'MaxPlayers=8' >> $GAME_INI_PATH"
+fi
 
 # enable as server so it stays up and start: https://satisfactory.fandom.com/wiki/Dedicated_servers/Running_as_a_Service
 cat << EOF > /etc/systemd/system/satisfactory.service
@@ -56,18 +66,6 @@ WorkingDirectory=$STEAM_DIR
 WantedBy=multi-user.target
 EOF
 
-CONFIG_DIR="$STEAM_DIR/FactoryGame/Saved/Config"
-su - ubuntu -c mkdir -p $CONFIG_DIR
-su - ubuntu -c "/usr/local/bin/aws s3 sync s3://$S3_SAVE_BUCKET/config $CONFIG_DIR"
-
-GAME_INI_PATH="$CONFIG_DIR/Game.ini"
-if [ ! -f "$GAME_INI_PATH" ]; then
-    su - ubuntu -c "cat << EOF > $GAME_INI_PATH
-[/Script/Engine.GameSession]
-MaxPlayers=8
-EOF"
-fi
-
 systemctl enable satisfactory
 systemctl start satisfactory
 
@@ -84,7 +82,7 @@ while [ \$isIdle -le 0 ]; do
     iterations=\$((60 / \$idleCheckFrequencySeconds * \$shutdownIdleMinutes))
     while [ \$iterations -gt 0 ]; do
         sleep \$idleCheckFrequencySeconds
-        connectionBytes=$(ss -lu | grep 777 | awk -F ' ' '{s+=$2} END {print s}')
+        connectionBytes=\$(ss -lu | grep 777 | awk -F ' ' '{s+=\$2} END {print s}')
         if [ ! -z \$connectionBytes ] && [ \$connectionBytes -gt 0 ]; then
             isIdle=0
         fi
@@ -97,7 +95,7 @@ while [ \$isIdle -le 0 ]; do
 done
 
 sudo /usr/local/bin/aws s3 sync $EPIC_SAVE_DIR s3://$S3_SAVE_BUCKET/saves
-sudo /usr/local/bin/aws s3 sync $EPIC_SAVE_DIR s3://$S3_SAVE_BUCKET/config
+sudo /usr/local/bin/aws s3 sync $CONFIG_DIR s3://$S3_SAVE_BUCKET/config
 
 echo "No activity detected for \$shutdownIdleMinutes minutes, shutting down."
 sudo shutdown -h now
